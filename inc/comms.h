@@ -3,6 +3,10 @@
 
 #include "error.h"
 
-NPResult send_xml(xmlDocPtr doc);
+// Returns file descriptor for a UDP socket
+int create_socket(char *ip, int port);
+
+// Sends XML data to the given socket
+NPResult send_xml(xmlDocPtr doc, int fd);
 
 #endif

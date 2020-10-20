@@ -5,7 +5,8 @@
 
 #include "error.h"
 
-NPResult parse_packets(xmlNode *root_node);
+// Copies each packet to a new document and calls send_xml() on each of them
+NPResult parse_packets(xmlNode *root_node, int fd);
 
 #endif
 #endif

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "error.h"
 
+// Prints out the correct error message.
 void printErr(NPResult result, const char *func) {
     printf("%s: ", func);
     if(result == NP_SUCCESS) {
@@ -19,6 +20,18 @@ void printErr(NPResult result, const char *func) {
         printf(XML_READ_FILE_ERROR_STR);
     } else if(result == NP_XML_TO_STRING_ERROR) {
         printf(XML_TO_STRING_ERROR_STR);
+    } else if(result == NP_XML_NEW_ROOT_CREATION_ERROR) {
+        printf(XML_NEW_ROOT_CREATION_ERROR_STR);
+    } else if(result == NP_XML_DOC_CREATION_ERROR) {
+        printf(XML_DOC_CREATION_ERROR_STR);
+    } else if(result == NP_SOCKET_CREATION_ERROR) {
+        printf(SOCKET_CREATION_ERROR_STR);
+    } else if(result == NP_SOCKET_IP_INVALID_ERROR) {
+        printf(SOCKET_IP_INVALID_ERROR_STR);
+    } else if(result == NP_SOCKET_CONNECTION_ERROR) {
+        printf(SOCKET_CONNECTION_ERROR_STR);
+    } else if(result == NP_SOCKET_SEND_MSG_ERROR) {
+        printf(SOCKET_SEND_MSG_ERROR_STR);
     } else {
         printf(UNKNOWN_ERROR_STR, result);
     }
