@@ -10,14 +10,14 @@
 
 #ifdef LIBXML_TREE_ENABLED
 
-// Given a packet node, this will add all of its children.
+// Given a packet node and a new root, this will add all of the packet node's children.
 static void add_children(xmlNode *packet, xmlNode *new_root) {
     xmlNode *cur_node = NULL;
     xmlNode *to_add = NULL;
 
     for(cur_node = packet->children; cur_node; cur_node = cur_node->next) {
-        to_add = xmlCopyNode(cur_node, 1);
-        xmlAddChild(new_root, to_add);
+        to_add = xmlCopyNode(cur_node, 1); // Recursively creates a copy of a child node
+        xmlAddChild(new_root, to_add); // Adds the copied child node to the new root
     }
 }
 
@@ -41,6 +41,7 @@ static void parse_packets(xmlNode *root_node) {
             doc = xmlNewDoc(BAD_CAST "1.0");
             if(doc == NULL) {
                 printf("Error while creating a new XML object.");
+                exit(-1);
             }
             new_root = xmlNewNode(NULL, BAD_CAST "packet");
             xmlDocSetRootElement(doc, new_root);
@@ -66,16 +67,17 @@ static void parse_packets(xmlNode *root_node) {
     }
 }
 
+// Main function
 int main(int argc, char **argv) {
     xmlDoc *doc = NULL;
 
     if (argc != 2) {
-        printf("Requires file for input.\n");
-        return(1);
+        printf("Requires PDML file for input.\n");
+        return 1;
     }
 
-    // Macro that checks whether the libxml2 version in use is compatible with the version that the software has been compiled against
-    // For some reason, a semicolon is not necessary here
+    // Macro that checks whether the libxml2 version in use is compatible with the version that the software has been compiled against.
+    // Due to some kind of witchcraft, a semicolon is not necessary here.
     LIBXML_TEST_VERSION
 
     // Get the document
