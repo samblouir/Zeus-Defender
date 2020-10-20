@@ -52,14 +52,12 @@ NPResult send_xml(xmlDocPtr doc, int fd) {
     xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1);
     if(xml_str == NULL || xml_str_len == 0) {
         result = NP_XML_TO_STRING_ERROR;
-        printErr(result, "send_xml()");
         goto end;
     }
 
     // Send the string
     if(send(fd, xml_str, xml_str_len, 0) < 0) {
         result = NP_SOCKET_SEND_MSG_ERROR;
-        printErr(result, "send_xml()");
         goto end;
     }
 
@@ -68,5 +66,8 @@ NPResult send_xml(xmlDocPtr doc, int fd) {
     xml_str = NULL;
 
 end:
+    if(result != NP_SUCCESS) {
+        printErr(result, "send_xml()");
+    }
     return result;
 }

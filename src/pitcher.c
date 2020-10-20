@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
     fd = create_socket(argv[2], port);
     if(fd < 0) {
         result = NP_FAIL;
-        printErr(result, "main()");
         goto end;
     }
 
@@ -38,7 +37,6 @@ int main(int argc, char **argv) {
     doc = xmlReadFile(argv[1], NULL, 0);
     if (doc == NULL) {
         result = NP_XML_READ_FILE_ERROR;
-        printErr(result, "main()");
         goto end;
     }
 
@@ -51,5 +49,8 @@ int main(int argc, char **argv) {
     xmlCleanupParser();
 
 end:
+    if(result != NP_SUCCESS) {
+        printErr(result, "main()");
+    }
     return result;
 }

@@ -18,18 +18,20 @@ static NPResult copy_children(xmlNode *packet, xmlNode *new_root) {
         temp = xmlCopyNode(cur_node, 1); // Recursively creates a copy of a child node
         if(temp == NULL) { // xmlCopyNode should not return NULL
             result = NP_XML_COPY_ERROR;
+            goto end;
         }
 
         temp = xmlAddChild(new_root, temp); // Adds the copied child node to the new root
         if(temp == NULL) { // xmlAddChild should not return NULL
             result = NP_FAIL;
+            goto end;
         }
     }
 
+end:
     if(result != NP_SUCCESS) {
         printErr(result, "copy_children()");
     }
-
     return result;
 }
 
@@ -81,14 +83,12 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
             doc = new_packet_xml_doc(cur_node);
             if(doc == NULL) {
                 result = NP_FAIL;
-                printErr(result, "parse_packets()");
                 goto end;
             }
 
             // Send the XML object to the receiver.
             if(send_xml(doc, fd) != NP_SUCCESS) {
                 result = NP_FAIL;
-                printErr(result, "parse_packets()");
                 goto end;
             }
 
@@ -99,5 +99,8 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
     }
 
 end:
+    if(result != NP_SUCCESS) {
+        printErr(result, "parse_packets()");
+    }
     return result;
 }
