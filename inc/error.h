@@ -37,6 +37,6 @@ typedef enum  NPResult
 } NPResult;
 
 // Checks if an error occurred and prints it out.
-void printErr(NPResult result, const char *func);
+void print_err(NPResult result, const char *func);
 
 #endif

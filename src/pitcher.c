@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
 end:
     if(result != NP_SUCCESS) {
-        printErr(result, "main()");
+        print_err(result, "main()");
     }
     return result;
 }

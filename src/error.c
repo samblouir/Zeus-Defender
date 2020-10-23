@@ -2,7 +2,7 @@
 #include "error.h"
 
 // Prints out the correct error message.
-void printErr(NPResult result, const char *func) {
+void print_err(NPResult result, const char *func) {
     printf("%s: ", func);
     if(result == NP_SUCCESS) {
         printf(SUCCESS_STR);

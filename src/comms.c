@@ -19,7 +19,7 @@ int create_socket(char *ip, int port) {
     // Create a UDP socket
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if(fd < 0) {
-        printErr(NP_SOCKET_CREATION_ERROR, "send_xml()");
+        print_err(NP_SOCKET_CREATION_ERROR, "send_xml()");
         goto end;
     }
 
@@ -27,13 +27,13 @@ int create_socket(char *ip, int port) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
     if(inet_pton(AF_INET, ip, &(serv_addr.sin_addr)) <= 0) {
-        printErr(NP_SOCKET_IP_INVALID_ERROR, "send_xml()");
+        print_err(NP_SOCKET_IP_INVALID_ERROR, "send_xml()");
         goto end;
     }
 
     // Connect to the server
     if(connect(fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        printErr(NP_SOCKET_CONNECTION_ERROR, "send_xml()");
+        print_err(NP_SOCKET_CONNECTION_ERROR, "send_xml()");
         goto end;
     }
 
@@ -67,7 +67,7 @@ NPResult send_xml(xmlDocPtr doc, int fd) {
 
 end:
     if(result != NP_SUCCESS) {
-        printErr(result, "send_xml()");
+        print_err(result, "send_xml()");
     }
     return result;
 }

@@ -30,7 +30,7 @@ static NPResult copy_children(xmlNode *packet, xmlNode *new_root) {
 
 end:
     if(result != NP_SUCCESS) {
-        printErr(result, "copy_children()");
+        print_err(result, "copy_children()");
     }
     return result;
 }
@@ -44,7 +44,7 @@ static xmlDocPtr new_packet_xml_doc(xmlNode *packet) {
     // Create a new document
     doc = xmlNewDoc(BAD_CAST "1.0");
     if(doc == NULL) {
-        printErr(NP_XML_DOC_CREATION_ERROR, "new_packet_xml_doc()");
+        print_err(NP_XML_DOC_CREATION_ERROR, "new_packet_xml_doc()");
         goto end;
     }
 
@@ -52,13 +52,13 @@ static xmlDocPtr new_packet_xml_doc(xmlNode *packet) {
     new_root = xmlNewNode(NULL, BAD_CAST "packet");
     xmlDocSetRootElement(doc, new_root);
     if(xmlDocGetRootElement(doc) != new_root) {
-        printErr(NP_XML_NEW_ROOT_CREATION_ERROR, "new_packet_xml_doc()");
+        print_err(NP_XML_NEW_ROOT_CREATION_ERROR, "new_packet_xml_doc()");
         goto end;
     }
 
     // Copy children to the new document
     if(copy_children(packet, new_root) != NP_SUCCESS) {
-        printErr(NP_FAIL, "new_packet_xml_doc()");
+        print_err(NP_FAIL, "new_packet_xml_doc()");
         goto end;
     }
 
@@ -100,7 +100,7 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
 
 end:
     if(result != NP_SUCCESS) {
-        printErr(result, "parse_packets()");
+        print_err(result, "parse_packets()");
     }
     return result;
 }
