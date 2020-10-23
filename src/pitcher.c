@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <string.h>
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
     result = parse_packets(xmlDocGetRootElement(doc), fd);
 
     // Cleanup
-    close(fd);
+    shutdown(fd, SHUT_RDWR);
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
