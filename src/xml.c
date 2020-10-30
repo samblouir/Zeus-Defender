@@ -6,35 +6,6 @@
 #include "comms.h"
 #include "error.h"
 
-// Takes a packet node and root node as parameters.
-// This will copy all of the packet node's children to the new root.
-static NPResult copy_children(xmlNode *packet, xmlNode *new_root) {
-    NPResult result = NP_SUCCESS;
-    xmlNode *cur_node = NULL;
-    xmlNode *temp = NULL;
-
-    // Loop through the packet's children
-    for(cur_node = packet->children; cur_node; cur_node = cur_node->next) {
-        temp = xmlCopyNode(cur_node, 1); // Recursively creates a copy of a child node
-        if(temp == NULL) { // xmlCopyNode should not return NULL
-            result = NP_XML_COPY_ERROR;
-            goto end;
-        }
-
-        temp = xmlAddChild(new_root, temp); // Adds the copied child node to the new root
-        if(temp == NULL) { // xmlAddChild should not return NULL
-            result = NP_FAIL;
-            goto end;
-        }
-    }
-
-end:
-    if(result != NP_SUCCESS) {
-        print_err(result, "copy_children()");
-    }
-    return result;
-}
-
 // Takes a node (which represents a single packet) as a parameter.
 // Returns a new XML document that only contains that packet object.
 static xmlDocPtr new_packet_xml_doc(xmlNode *packet) {
@@ -49,16 +20,11 @@ static xmlDocPtr new_packet_xml_doc(xmlNode *packet) {
     }
 
     // Create a new root element for the document
-    new_root = xmlNewNode(NULL, BAD_CAST "packet");
+    //new_root = xmlNewNode(NULL, BAD_CAST "packet");
+    new_root = xmlCopyNode(packet, 1);
     xmlDocSetRootElement(doc, new_root);
     if(xmlDocGetRootElement(doc) != new_root) {
         print_err(NP_XML_NEW_ROOT_CREATION_ERROR, "new_packet_xml_doc()");
-        goto end;
-    }
-
-    // Copy children to the new document
-    if(copy_children(packet, new_root) != NP_SUCCESS) {
-        print_err(NP_FAIL, "new_packet_xml_doc()");
         goto end;
     }
 
