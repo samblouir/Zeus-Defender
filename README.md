@@ -1,3 +1,18 @@
+# Pitcher
+
+### Usage
+1. Setup two VMs, one for the pitcher and another for the receiver.
+    1. You can also use `nc -nlvup 4444` on a separate terminal window to act as a test receiver.    
+2. Get the location of the XML file that you wish to send.
+3. Use `./pitcher <XML file> <Receiver's IP address> <Receiver's PORT>` to send the file.
+    1. If you're using the `nc` command, then you can do `./pitcher <XML file> 127.0.0.1 4444`.
+
+### Networking
+Networking for this program is handled in src/comms.c. The `main()` function will call `create_socket()` in comms.c, which is where the socket is first created. `create_socket()` will create a file descriptor for a socket by using `socket(AF_INET, SOCK_DGRAM, 0)`, use `inet_pton()` to save the IP address information in `serv_addr.sin_addr`, call `connect()`, and return the file descriptor. When an XML packet object needs to be sent to the receiver, the `send_xml()` function is called, which will use `xmlDocDumpFormatMemoryEnc()` to convert the XML document to a string and send the string using `send()`.
+
+### Parsing XML
+Most of the XML parsing code is done in xml.c. The `main()` function will call `xmlReadFile()` to obtain an XML document pointer. Using the XML document pointer as an argument, `main()` will then call `parse_packets()`, located in xml.c. `parse_packets()` will loop through every child node in the given XML document, and if the child's name is "packet," the function will create a new XML document that only contains that packet and call `send_xml()`. It accomplishes this by using a static function called `new_packet_xml_doc()`, which create a copy of the XML document and returns the copy.
+
 # Zeus-Defender
 
 ### Basic Setup
