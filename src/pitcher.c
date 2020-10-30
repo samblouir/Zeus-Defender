@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 
     // Check arguments
     if (argc != 4) {
-        printf("Usage: ./pitcher <PDML file> <Reciever's IP address> <Receiver's PORT>\n");
+        printf("Usage: ./pitcher <XML file> <Reciever's IP address> <Receiver's PORT>\n");
         return 1;
     }
     sscanf(argv[3], "%d", &port);
