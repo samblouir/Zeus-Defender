@@ -1,0 +1,24 @@
+UDS failed to work. Using IPv4...
+All processes started
+	Pitcher -----  -----  -----  -----  ----- Pitcher:  Started
+	Pitcher -----  -----  -----  -----  ----- Pitcher:  Sending... ['Good', 'weather', 'today!']
+	Receiver ----  ----  ----  ---- Receiver:  Started!
+	Filter ---  ---  --- Filter:  Started!
+	Data Analytics --  -- Data Analytics:  Started!
+	Flag - Flag:  Started!
+	Receiver ----  ----  ----  ---- Receiver: Received message from Pitcher, contents: ['Good', 'weather', 'today!']
+	Filter ---  ---  --- Filter: Received message from Receiver, contents: ['Good', 'weather', 'today!']
+	Data Analytics --  -- Data Analytics: Received message from Filter, contents: ['Good', 'weather', 'today!']
+	Data Analytics --  -- Data Analytics:  Thinking...
+	Data Analytics --  -- Data Analytics:  Generated new rules, sending to filter...
+	Data Analytics --  -- Data Analytics:  Rule adjustments sent! Sending payload to filter...
+	Filter ---  ---  --- Filter: Received message from Data Analytics, contents: ['new rule', 't', 'w']
+	Filter ---  ---  --- Filter:  Added new rules: t w
+	Filter ---  ---  --- Filter:  Current rules: ['t', 'w']
+	Filter ---  ---  --- Filter: Received message from Data Analytics, contents: ['Good', 'weather', 'today!']
+	Filter ---  ---  --- Filter:  filter_and_forward called with  ['Good', 'weather', 'today!']
+	Filter ---  ---  --- Filter:  Filtering with  ['t', 'w'] ...
+	Filter ---  ---  --- Filter: 	Filtering 'today!'
+	Filter ---  ---  --- Filter: 	Filtering 'weather'
+	Filter ---  ---  --- Filter:  Sending remaining data to the Flag...
+	Flag - Flag: Received message from Filter, contents: ['Good']
