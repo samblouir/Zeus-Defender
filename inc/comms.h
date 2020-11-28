@@ -9,4 +9,7 @@ int create_server(char *ip, int port);
 // Reads XML data from the pitcher in 2048-byte increments
 NPResult recv_xml(int fd);
 
+// Forwards the data to the filter via UDS
+NPResult forward_to_filter(const char *data);
+
 #endif
