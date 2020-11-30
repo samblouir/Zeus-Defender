@@ -14,7 +14,7 @@
 5. Download wireshark on the pitcher and the catcher using `sudo apt install wireshark`.
     - Even though technically we don't need to use wireshark on the catcher, we might use the libraries that are installed with wireshark later.
 6. Take a snapshot of both VMs.
-7. On the pitcher, start capturing network traffic in wireshark for a minute or so, and then click `File->Export Packet Dissections->As PDML XML`. Save the file as "test.pdml" and close wireshark.
-8. On the catcher, run `nc -nlvp 1234 > test.pdml` on the command line.
-9. On the pitcher, run `nc [catcher's IP] 1234 < test.pdml` on the command line.
-10. If you can open test.pdml on the catcher in a text editor and see XML data, then congratulations, you’ve just finished a basic one-way transfer.
+7. On the catcher, run `nc -nlvU ZD` to create a UDS socket that acts as the filter.
+8. On the catcher, run `./receiver <Pitcher's IP address> <PORT>` to start the receiver.
+9. On the pitcher, run `./pitcher <XML file> <Reciever's IP address> <Receiver's PORT>` to send the XML file.
+10. The catcher should be able to see the XML file sent from the pitcher and forward it to the netcat server that is acting as the filter.
