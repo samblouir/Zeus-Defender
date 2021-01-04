@@ -116,6 +116,7 @@ NPResult recv_xml(int fd) {
     }
 
     while(running) {
+        memset(buf, 0, 2048); // Clear the buffer
         if(recv(fd, buf, 2048, 0) < 0) {
             result = NP_SOCKET_RECV_MSG_ERROR;
             goto end;
