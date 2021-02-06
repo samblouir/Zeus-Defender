@@ -107,7 +107,7 @@ NPResult recv_xml(int fd) {
     // int fds[2];
     // socketpair(PF_LOCAL, SOCK_STREAM, 0, fds);
 
-    int filter = create_uds_client("/tmp/zeus/receivedpackets");
+    int filter = create_uds_client("/tmp/zeus/receiver2filter");
     printf("INFO: filter: %d\n", filter);
     if(filter < 0) {
         result = NP_FAIL;
