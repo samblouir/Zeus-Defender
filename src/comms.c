@@ -10,7 +10,7 @@
 #include <libxml/tree.h>
 #include "error.h"
 
-#define SOCK_PATH "ZD"
+#define SOCK_PATH "/tmp/zeus/receivedpackets"
 
 // Reads a single XML file from the receiver.
 // Returns the data into as an xmlDocPtr.
