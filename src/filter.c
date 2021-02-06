@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/poll.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlschemas.h>
 #include "comms.h"
+#include "xml.h"
 
 // Prints out the XML data.
 // This is just here for testing purposes.
@@ -22,60 +24,68 @@ void printxml(xmlDocPtr doc) {
     }
 }
 
+// Triggered when the receiver has sent a packet to the filter
+void packet_available(int receiver2filter) {
+    xmlDocPtr packet = NULL;
+
+    // Read data from the receiver to obtain XML data about a single packet.
+	packet = receive_xml(receiver2filter);
+
+	// This is just here for testing purposes. You can delete this.
+	printxml(packet);
+
+	// Check if the packet is valid
+	if(is_valid_packet(packet)) {
+		// TODO: Forward the XML data to the flag
+	} else {
+		// TODO: Print a message saying that a packet was blocked
+	}
+
+	// Regardless of whether the packet was allowed or blocked, 
+	// send it to the data analytics component. Do not use the schema socket
+	// for doing this! Make another UDS socket for communicating with the
+	// data analytics component (this will probably also have to be passed
+    // in as an input parameter for this function).
+
+	// Delete the packet
+	xmlFreeDoc(packet);
+}
+
+// Triggered when the data analytics component has sent a new schema
+void schema_available(int analytics2filter) {
+    // TODO: Read the schema that the data analytics component sent
+    // TODO: Update the schema that we are currently using in xml.c
+}
+
 int main(void){
-    int receiver_fd;
-    xmlDocPtr doc;
+    int receiver2filter = 0, analytics2filter = 0;
+    struct pollfd fds[2] = {0};
 
     // Checks whether the libxml2 version is compatible with the software
     // Due to some kind of witchcraft, a semicolon is not necessary here
     LIBXML_TEST_VERSION
 
-    // Start the UDS listener
-    receiver_fd = start_uds_listener();
+    // UDS server sockets for communication
+    receiver2filter = receiver_to_filter_socket();
+    analytics2filter = analytics_to_filter_socket();
 
-    /* 
-     * TODO: We need to figure out a way to have the filter communicate with
-     *       the data analytics component. We have two options that I can
-     *       think off the top of my head:
-     *
-     *       1.) Create a new thread, and have that thread communicate with
-     *       the data analytics component. If the data analytics component
-     *       sends a UDS message to this thread, then this thread will update
-     *       the schema. The downside to this is it's a lot more difficult as
-     *       we would have to implement code for communicating between threads
-     *       as well as communicating between the filter and data analytics
-     *       component.
-     *
-     *       2.) Check whether the data analytics component has sent us a message
-     *       right before parsing another packet XML object. In other words, right
-     *       after we call readxml() in the while loop, we should call another
-     *       function that updates the XML schema we're using before validating the
-     *       XML object.
-     *
-     *       -- Nihaal
-     */
+    // Initialize the pollfd structure to listen for the UDS sockets
+    fds[0].fd = receiver2filter;
+    fds[0].events = POLLIN;
+    fds[1].fd = analytics2filter;
+    fds[1].fd = POLLIN;
 
-    while(1) {
-        doc = readxml(receiver_fd);
+    // Wait for incoming data to arrive at one of the sockets.
+	// If something arrives, call the correct function.
+    while(poll(fds, 2, -1) >= 0) {
+        if(fds[0].revents == POLLIN) {
+            packet_available(receiver2filter);
+        }
 
-        // This is just here for testing purposes. You can delete this.
-        printxml(doc);
-
-        /*
-         * TODO: Create and call another function to validate the schema here.
-         *       It should return 1 if valid and 0 otherwise. Preferably,
-         *       this function would be defined in a different file. Maybe
-         *       something like validate.c or schema.c.
-         *
-         * TODO: If valid, forward the XML data to the flag. The function that
-         *       forwards the data to the flag should be defined in comms.c
-         *
-         *       -- Nihaal
-         */
-
-        xmlFreeDoc(doc);
+        if(fds[1].revents == POLLIN) {
+            schema_available(analytics2filter);
+        }
     }
-
 }
 
     /*

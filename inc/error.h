@@ -37,7 +37,7 @@ typedef enum  NPResult
     NP_SOCKET_IP_INVALID_ERROR,
     NP_SOCKET_CONNECTION_ERROR,
     NP_SOCKET_SEND_MSG_ERROR,
-    NP_SOCKET_RECV_MSG_ERROR
+    NP_SOCKET_RECV_MSG_ERROR,
 } NPResult;
 
 // Checks if an error occurred and prints it out.

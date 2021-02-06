@@ -5,7 +5,13 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-xmlDocPtr readxml(int receiver_fd); // Reads XML data from the receiver
-int start_uds_listener(); // Starts UDS Listener and returns file descriptor
+#define RECEIVER_TO_FILTER "/tmp/zeus/receiver2filter"
+#define ANALYTICS_TO_FILTER "/tmp/zeus/analytics2filter"
+
+xmlDocPtr receive_xml(int receiver_fd); // Reads XML data from the receiver
+
+/* SERVER SOCKETS */
+int receiver_to_filter_socket(); // Returns UDS socket for obtaining data from receiver
+int analytics_to_filter_socket(); // Returns UDS socket for obtaining data from data analytics
 
 #endif
