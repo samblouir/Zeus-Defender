@@ -71,7 +71,6 @@ int create_uds_client(char *path)
 {
     int fd = 0; // File descriptor to return
     struct sockaddr_un serv_addr = {0}; // Contains information about socket
-    // char pathy[] = "ZD"; // ...
 
     // Create a UDS socket
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -108,7 +107,7 @@ NPResult recv_xml(int fd) {
     // int fds[2];
     // socketpair(PF_LOCAL, SOCK_STREAM, 0, fds);
 
-    int filter = create_uds_client("ZD");
+    int filter = create_uds_client("/tmp/zeus/receivedpackets");
     printf("INFO: filter: %d\n", filter);
     if(filter < 0) {
         result = NP_FAIL;
