@@ -1,5 +1,8 @@
 # Zeus-Defender
 
+### Secondary git (to merge later)
+https://github.com/samblouir/zeusids_installer
+
 ### Basic Setup
 1. Download Xubuntu from https://mirror.us.leaseweb.net/ubuntu-cdimage/xubuntu/releases/20.04/release/xubuntu-20.04-desktop-amd64.iso.
 2. Setup two virtual machines with the following settings (Note that this was done using VirtualBox, but this should work on VMWare as well):
