@@ -1,0 +1,30 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="packet" type="packetType"/>
+  <xs:complexType name="fieldType" mixed="true">
+    <xs:sequence>
+      <xs:element type="fieldType" name="field" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:byte" name="pos" use="optional"/>
+    <xs:attribute type="xs:string" name="show" use="optional"/>
+    <xs:attribute type="xs:string" name="showname" use="optional"/>
+    <xs:attribute type="xs:string" name="value" use="optional"/>
+    <xs:attribute type="xs:byte" name="size" use="optional"/>
+    <xs:attribute type="xs:string" name="hide" use="optional"/>
+    <xs:attribute type="xs:string" name="unmaskedvalue" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="protoType">
+    <xs:sequence>
+      <xs:element type="fieldType" name="field" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:attribute type="xs:byte" name="pos" use="optional"/>
+    <xs:attribute type="xs:string" name="showname" use="optional"/>
+    <xs:attribute type="xs:byte" name="size" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="packetType">
+    <xs:sequence>
+      <xs:element type="protoType" name="proto" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
