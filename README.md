@@ -1,6 +1,6 @@
 # Zeus-Defender
 
-### Secondary git (to merge later)
+### Secondary git (Machine Learning portion) (TODO: merge)
 https://github.com/samblouir/zeusids_installer
 
 ### Basic Setup
