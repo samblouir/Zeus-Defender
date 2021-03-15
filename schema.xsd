@@ -1,30 +1,65 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="packet" type="packetType"/>
-  <xs:complexType name="fieldType" mixed="true">
-    <xs:sequence>
-      <xs:element type="fieldType" name="field" maxOccurs="unbounded" minOccurs="0"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:byte" name="pos" use="optional"/>
-    <xs:attribute type="xs:string" name="show" use="optional"/>
-    <xs:attribute type="xs:string" name="showname" use="optional"/>
-    <xs:attribute type="xs:string" name="value" use="optional"/>
-    <xs:attribute type="xs:byte" name="size" use="optional"/>
-    <xs:attribute type="xs:string" name="hide" use="optional"/>
-    <xs:attribute type="xs:string" name="unmaskedvalue" use="optional"/>
+
+  <xs:complexType name="packet_headerType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:byte" name="ver"/>
+        <xs:attribute type="xs:byte" name="hlen"/>
+        <xs:attribute type="xs:int" name="tot_len"/>
+        <xs:attribute type="xs:string" name="id"/>
+        <xs:attribute type="xs:int" name="flags"/>
+        <xs:attribute type="xs:byte" name="frag_offset"/>
+        <xs:attribute type="xs:int" name="ttl"/>
+        <xs:attribute type="xs:byte" name="protocol"/>
+        <xs:attribute type="xs:string" name="header_checksum"/>
+        <xs:attribute type="xs:string" name="source_addr"/>
+        <xs:attribute type="xs:string" name="destination_addr"/>
+        <xs:attribute type="xs:byte" name="option"/>
+        <xs:attribute type="xs:byte" name="codepoint"/>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
-  <xs:complexType name="protoType">
-    <xs:sequence>
-      <xs:element type="fieldType" name="field" maxOccurs="unbounded" minOccurs="0"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:attribute type="xs:byte" name="pos" use="optional"/>
-    <xs:attribute type="xs:string" name="showname" use="optional"/>
-    <xs:attribute type="xs:byte" name="size" use="optional"/>
+
+  <xs:complexType name="segment_headerType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:int" name="src_port"/>
+        <xs:attribute type="xs:int" name="dst_port"/>
+        <xs:attribute type="xs:long" name="seq_num"/>
+        <xs:attribute type="xs:long" name="ack_num"/>
+        <xs:attribute type="xs:int" name="hlen"/>
+        <xs:attribute type="xs:byte" name="reserved"/>
+        <xs:attribute type="xs:byte" name="urg"/>
+        <xs:attribute type="xs:byte" name="ack"/>
+        <xs:attribute type="xs:byte" name="psh"/>
+        <xs:attribute type="xs:byte" name="rst"/>
+        <xs:attribute type="xs:byte" name="syn"/>
+        <xs:attribute type="xs:byte" name="fin"/>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
+
+  <xs:complexType name="segmentType">
+    <xs:sequence>
+      <xs:element type="segment_headerType" name="segment_header"/>
+      <xs:element type="xs:string" name="segment_data"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="protocol"/>
+  </xs:complexType>
+  <xs:complexType name="packet_dataType">
+    <xs:sequence>
+      <xs:element type="segmentType" name="segment"/>
+    </xs:sequence>
+  </xs:complexType>
+
   <xs:complexType name="packetType">
     <xs:sequence>
-      <xs:element type="protoType" name="proto" maxOccurs="unbounded" minOccurs="0"/>
+      <xs:element type="packet_headerType" name="packet_header"/>
+      <xs:element type="packet_dataType" name="packet_data"/>
     </xs:sequence>
+    <xs:attribute type="xs:string" name="protocol"/>
+    <xs:attribute type="xs:string" name="datetime"/>
   </xs:complexType>
+
 </xs:schema>
