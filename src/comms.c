@@ -46,6 +46,7 @@ end:
 NPResult send_xml(xmlDocPtr doc, int fd) {
     NPResult result = NP_SUCCESS;
     xmlChar *xml_str = NULL;
+    char xml_str_len_buf[8] = {0};
     int xml_str_len = 0;
 
     // Convert the XML document to a string
@@ -55,17 +56,23 @@ NPResult send_xml(xmlDocPtr doc, int fd) {
         goto end;
     }
 
+    // Send the length of the string
+    snprintf(xml_str_len_buf, 8, "%lu", (size_t) xml_str_len);
+    if(send(fd, xml_str_len_buf, 8, 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
+        goto end;
+    }
+
     // Send the string
     if(send(fd, xml_str, xml_str_len, 0) < 0) {
         result = NP_SOCKET_SEND_MSG_ERROR;
         goto end;
     }
 
-    // Free memory
-    xmlFree(xml_str);
-    xml_str = NULL;
-
 end:
+    if(xml_str != NULL) {
+        xmlFree(xml_str);
+    }
     if(result != NP_SUCCESS) {
         print_err(result, "send_xml()");
     }
