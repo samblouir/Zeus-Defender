@@ -14,4 +14,10 @@ xmlDocPtr receive_xml(int receiver_fd); // Reads XML data from the receiver
 int receiver_to_filter_socket(); // Returns UDS socket for obtaining data from receiver
 int analytics_to_filter_socket(); // Returns UDS socket for obtaining data from data analytics
 
+/*
+ * Note:
+ * You can use something like "nc -nvU /tmp/zeus/analytics2filter" to simulate the
+ * data analytics component talking to the filter.
+ */
+
 #endif

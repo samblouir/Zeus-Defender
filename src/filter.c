@@ -25,23 +25,21 @@ void printxml(xmlDocPtr doc) {
 }
 
 // Triggered when the receiver has sent a packet to the filter
-void packet_available(int receiver2filter) {
+void packet_available(int receiver2filter, xmlDocPtr schemaDocPtr) {
     xmlDocPtr packet = NULL;
 
     // Read data from the receiver to obtain XML data about a single packet.
 	packet = receive_xml(receiver2filter);
 
-	// This is just here for testing purposes. You can delete this.
-	printxml(packet);
-
 	// Check if the packet is valid
-	if(is_valid_packet(packet)) {
+	if(is_valid_packet(packet, schemaDocPtr)) {
 		// TODO: Forward the XML data to the flag
+        printxml(packet);
 	} else {
-		// TODO: Print a message saying that a packet was blocked
+        printf("Invalid packet has been blocked.\n");
 	}
 
-	// Regardless of whether the packet was allowed or blocked, 
+	// TODO: Regardless of whether the packet was allowed or blocked, 
 	// send it to the data analytics component. Do not use the schema socket
 	// for doing this! Make another UDS socket for communicating with the
 	// data analytics component (this will probably also have to be passed
@@ -51,19 +49,17 @@ void packet_available(int receiver2filter) {
 	xmlFreeDoc(packet);
 }
 
-// Triggered when the data analytics component has sent a new schema
-void schema_available(int analytics2filter) {
-    // TODO: Read the schema that the data analytics component sent
-    // TODO: Update the schema that we are currently using in xml.c
-}
-
-int main(void){
+int main(int argc, char **argv){
     int receiver2filter = 0, analytics2filter = 0;
     struct pollfd fds[2] = {0};
+    xmlDocPtr schemaDocPtr = NULL;
 
     // Checks whether the libxml2 version is compatible with the software
     // Due to some kind of witchcraft, a semicolon is not necessary here
     LIBXML_TEST_VERSION
+
+    // Initialize the XML schema
+    schemaDocPtr = default_schema();
 
     // UDS server sockets for communication
     receiver2filter = receiver_to_filter_socket();
@@ -78,96 +74,12 @@ int main(void){
     // Wait for incoming data to arrive at one of the sockets.
 	// If something arrives, call the correct function.
     while(poll(fds, 2, -1) >= 0) {
-        if(fds[0].revents == POLLIN) {
-            packet_available(receiver2filter);
-        }
-
         if(fds[1].revents == POLLIN) {
-            schema_available(analytics2filter);
+            xmlFreeDoc(schemaDocPtr);
+            schemaDocPtr = receive_xml(analytics2filter);
+        }
+        if(fds[0].revents == POLLIN) {
+            packet_available(receiver2filter, schemaDocPtr);
         }
     }
 }
-
-    /*
-    // Leaving this here for reference
-
-    FILE *fPtr;
-    while(1){
-        memset(buf, 0, 2048);
-        bytes_rec = recv(fd, buf, 2048, 0);
-        if (bytes_rec < 0){
-            printf("RECV ERROR.\n");
-            close(fd);
-            break;
-        } else {
-            printf("DATA RECEIVED = %s\n", buf);
-            
-            fPtr = fopen("packet.xml", "a");
-            fputs(buf, fPtr);
-            
-           // strcat(str,buf);
-        }
-    }
-    
-    //Creating xmlDoc for both the packet and xml schemea 
-    xmlDocPtr packetDocPtr;
-    xmlDocPtr schemaDocPtr;
-    
-    //xml filenames
-    char * xmlFilename = "packet.xml";
-    char * schemaFilename = "schema.xsd";
-    
-    //creating schema context for validating 
-    xmlSchemaParserCtxtPtr schemaParserCtxt;
-    xmlSchemaPtr schema;
-    xmlSchemaValidCtxtPtr validCtxt;
-    
-    //error checking
-    packetDocPtr = xmlReadFile(xmlFilename, NULL, XML_PARSE_NONET);
-    if (!packetDocPtr){
-        goto end;
-    }
-        
-    schemaDocPtr = xmlReadFile(schemaFilename, NULL, XML_PARSE_NONET);
-    if (!schemaDocPtr){
-        goto end;
-    }
-
-    schemaParserCtxt = xmlSchemaNewDocParserCtxt(schemaDocPtr);
-    if (!schemaParserCtxt){
-        goto end;
-    }
-
-    schema = xmlSchemaParse(schemaParserCtxt);
-    if (!schema){
-        goto end;
-    }
-
-    validCtxt = xmlSchemaNewValidCtxt(schema);
-    if(!validCtxt){
-        goto end;
-    }
-
-    //XML validation
-    xmlSchemaFreeParserCtxt(schemaParserCtxt);
-    xmlFreeDoc(schemaDocPtr);
-
-    int valid = 0;
-    valid = xmlSchemaValidateDoc(validCtxt, packetDocPtr);
-    if (valid == 0){
-        printf("Valid Doc \n");
-     }else{
-       printf("Invalid Doc \n");
-    }
-    
-    //freeing mem
-    xmlSchemaFree(schema);
-    xmlFreeDoc(packetDocPtr);    
-    fclose(fPtr);
-    
-end: 
-    xmlSchemaFree(schema);
-    xmlFreeDoc(packetDocPtr);    
-    fclose(fPtr);
-    return 0;
-    */

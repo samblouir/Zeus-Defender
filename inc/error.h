@@ -11,6 +11,7 @@
 #define XML_TO_STRING_ERROR_STR "XML to string conversion error.\n"
 #define XML_NEW_ROOT_CREATION_ERROR_STR "XML new root creation error.\n"
 #define XML_DOC_CREATION_ERROR_STR "XML document creation error.\n"
+#define XML_SCHEMA_ERROR_STR "XML schema error.\n"
 #define SOCKET_CREATION_ERROR_STR "Socket creation error.\n"
 #define SOCKET_BIND_ERROR_STR "Socket bind error.\n"
 #define SOCKET_IP_INVALID_ERROR_STR "Invalid IP address for server.\n"
@@ -32,6 +33,7 @@ typedef enum  NPResult
     NP_XML_TO_STRING_ERROR,
     NP_XML_NEW_ROOT_CREATION_ERROR,
     NP_XML_DOC_CREATION_ERROR,
+    NP_XML_SCHEMA_ERROR,
     NP_SOCKET_CREATION_ERROR,
     NP_SOCKET_BIND_ERROR,
     NP_SOCKET_IP_INVALID_ERROR,

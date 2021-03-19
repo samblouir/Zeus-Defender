@@ -24,6 +24,8 @@ void print_err(NPResult result, const char *func) {
         printf(XML_NEW_ROOT_CREATION_ERROR_STR);
     } else if(result == NP_XML_DOC_CREATION_ERROR) {
         printf(XML_DOC_CREATION_ERROR_STR);
+    } else if(result == NP_XML_SCHEMA_ERROR){
+        printf(XML_SCHEMA_ERROR_STR);
     } else if(result == NP_SOCKET_CREATION_ERROR) {
         printf(SOCKET_CREATION_ERROR_STR);
     } else if(result == NP_SOCKET_BIND_ERROR) {

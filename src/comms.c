@@ -11,9 +11,10 @@
 #include "error.h"
 #include "comms.h"
 
-// Reads a single XML file from the receiver.
+// Reads a single XML file.
 // Returns the data into as an xmlDocPtr.
-// Takes the file descriptor for receivedpackets as a parameter.
+// Takes a file descriptor as a parameter.
+// TODO: Variable length XML data?
 xmlDocPtr receive_xml(int receiver_fd) {
     NPResult result = NP_FAIL;
     char buf[2048] = {0};
@@ -51,6 +52,8 @@ int receiver_to_filter_socket() {
     struct sockaddr_un client_sockaddr = {0};
     unsigned int len = 0;
     int server_sock=0, client_sock=0, rc=0;
+
+    printf("INFO: Setting up receiver2filter UDS socket...\n");
 
     // Create a UDS socket
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -93,7 +96,9 @@ int receiver_to_filter_socket() {
 
 end:
     if(result != NP_SUCCESS) {
-        print_err(result, "start_receivedpackets_listener()");
+        print_err(result, "receiver_to_filter_socket()");
+    } else {
+        printf("INFO: receiver2filter socket setup.\n");
     }
     return client_sock;
 }
@@ -107,6 +112,8 @@ int analytics_to_filter_socket() {
     struct sockaddr_un client_sockaddr = {0};
     unsigned int len = 0;
     int server_sock=0, client_sock=0, rc=0;
+
+    printf("INFO: Setting up analytics2filter UDS socket...\n");
 
     // Create a UDS socket
     server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -149,7 +156,9 @@ int analytics_to_filter_socket() {
 
 end:
     if(result != NP_SUCCESS) {
-        print_err(result, "start_schema_listener()");
+        print_err(result, "analytics_to_filter_socket()");
+    } else {
+        printf("INFO: analytics2filter socket setup.\n");
     }
     return client_sock;
 }
