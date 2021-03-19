@@ -8,7 +8,7 @@
 #define RECEIVER_TO_FILTER "/tmp/zeus/receiver2filter"
 #define ANALYTICS_TO_FILTER "/tmp/zeus/analytics2filter"
 
-xmlDocPtr receive_xml(int receiver_fd); // Reads XML data from the receiver
+xmlDocPtr receive_xml(int fd); // Reads XML data from the given file descriptor
 
 /* SERVER SOCKETS */
 int receiver_to_filter_socket(); // Returns UDS socket for obtaining data from receiver

@@ -8,27 +8,37 @@
 #include <unistd.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include "heap.h"
 #include "error.h"
 #include "comms.h"
 
-// Reads a single XML file.
+// Reads a single XML file from the given file descriptor.
 // Returns the data into as an xmlDocPtr.
-// Takes a file descriptor as a parameter.
-// TODO: Variable length XML data?
-xmlDocPtr receive_xml(int receiver_fd) {
+xmlDocPtr receive_xml(int fd) {
     NPResult result = NP_FAIL;
-    char buf[2048] = {0};
-    int bytes_read = 0;
+    char *buf = NULL;
+    size_t len = 0;
     xmlDocPtr doc = NULL;
 
-    bytes_read = recv(receiver_fd, buf, sizeof(buf), 0);
-    if(bytes_read == -1) {
+    // Get the size of the data
+    buf = my_malloc(8);
+    if(recv(fd, buf, 8, 0) < 0) {
+        result = NP_SOCKET_RECV_MSG_ERROR;
+        goto end;
+    }
+    sscanf(buf, "%lu", &len);
+    free(buf);
+    buf = NULL;
+
+    // Read the XML data itself
+    buf = my_malloc(len);
+    if(recv(fd, buf, len, 0) < 0) {
         result = NP_SOCKET_RECV_MSG_ERROR;
         goto end;
     }
 
     // Convert the string into an xmlDocPtr
-    doc = xmlReadMemory(buf, bytes_read, "packet.xml", NULL, 0);
+    doc = xmlReadMemory(buf, len, "packet.xml", NULL, 0);
     if(doc == NULL) {
         result = NP_XML_DOC_CREATION_ERROR;
         goto end;
@@ -37,6 +47,10 @@ xmlDocPtr receive_xml(int receiver_fd) {
     result = NP_SUCCESS;
 
 end:
+    if(buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
     if(result != NP_SUCCESS) {
         print_err(result, "receive_xml()");
     }
