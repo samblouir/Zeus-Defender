@@ -9,6 +9,8 @@
 #include <sys/un.h> 
 #include <errno.h>
 #include "error.h"
+#include "heap.h"
+#include "comms.h"
 
 #ifndef __DEBUG__
 #define __DEBUG__
@@ -19,8 +21,6 @@
 #else
     #define DPRINT
 #endif
-
-NPResult forward_to_filter(int filter, const char *data);
 
 // Creates the server and returns a file descriptor for the client's socket
 int create_server(char *ip, int port) {
@@ -101,13 +101,13 @@ int create_uds_client(char *path)
 // Reads XML data from the pitcher in 2048-byte increments
 NPResult recv_xml(int fd) {
     NPResult result = NP_SUCCESS;
-    char buf[2048] = {0};
+    char *buf = NULL;
+    char buf_len_buf[8] = {0};
+    size_t buf_len = 0;
     int running = 1;
-
-    // int fds[2];
-    // socketpair(PF_LOCAL, SOCK_STREAM, 0, fds);
-
+    int res = 0;
     int filter = create_uds_client("/tmp/zeus/receiver2filter");
+
     printf("INFO: filter: %d\n", filter);
     if(filter < 0) {
         result = NP_FAIL;
@@ -115,12 +115,25 @@ NPResult recv_xml(int fd) {
     }
 
     while(running) {
-        memset(buf, 0, 2048); // Clear the buffer
-        if(recv(fd, buf, 2048, 0) < 0) {
+        // Obtain the length of the XML data
+        memset(buf_len_buf, 0, 8);
+        if(recv(fd, buf_len_buf, 8, 0) < 0) {
             result = NP_SOCKET_RECV_MSG_ERROR;
             goto end;
         }
-        int res = forward_to_filter(filter, buf);
+        sscanf(buf_len_buf, "%lu", &buf_len);
+
+        // Obtain the XML data
+        buf = my_malloc(buf_len);
+        if(recv(fd, buf, buf_len, 0) < 0) {
+            result = NP_SOCKET_RECV_MSG_ERROR;
+            goto end;
+        }
+        
+        // Forward the XML data
+        res = forward_to_filter(filter, buf, buf_len, buf_len_buf);
+        free(buf);
+        buf = NULL;
         if(res < 0) {
             result = NP_FAIL;
             goto end;
@@ -128,23 +141,36 @@ NPResult recv_xml(int fd) {
     }
 
 end:
+    if(buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
     if(result != NP_SUCCESS) {
         print_err(result, "recv_xml()");
     }
     return result;
 }
 
-NPResult forward_to_filter(int filter, const char *data) {
+NPResult forward_to_filter(int filter, const char *data, size_t len, const char *data_len_buf) {
     NPResult result = NP_SUCCESS;
 
-    // printf("%s", data);
     if(data == NULL) {
         result = NP_FAIL;
         goto end;
     }
-    
-    send(filter, data, 2048, 0);
 
+    // Send the length of the data
+    if(send(filter, data_len_buf, 8, 0) < 0) {
+        result = NP_FAIL;
+        goto end;
+    }
+
+    // Send the data itself
+    if(send(filter, data, len, 0) < 0) {
+        result = NP_FAIL;
+        goto end;
+    }
+    
 end:
     if(result != NP_SUCCESS) {
         print_err(result, "forward_to_filter()");

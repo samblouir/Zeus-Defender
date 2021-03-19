@@ -10,6 +10,6 @@ int create_server(char *ip, int port);
 NPResult recv_xml(int fd);
 
 // Forwards the data to the filter via UDS
-NPResult forward_to_filter(const char *data);
+NPResult forward_to_filter(int filter, const char *data, size_t len, const char *data_len_buf);
 
 #endif
