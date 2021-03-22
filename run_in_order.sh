@@ -44,7 +44,7 @@ cd ../..
 sleep $sleep_dur
 echo "Starting the Pitcher!"
 pitcher_path="$inner_folder/pitcher"
-cmd="$pitcher_path/pitcher $inner_folder/example_packets.xml $my_ip $port_to_use"
+cmd="$pitcher_path/pitcher $pitcher_path/example_packets.xml $my_ip $port_to_use"
 echo "Running $cmd..."
 $cmd
 ###############################################################################
