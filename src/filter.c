@@ -20,6 +20,7 @@ void printxml(xmlDocPtr doc) {
         print_err(NP_XML_TO_STRING_ERROR, "printxml()");
         exit(0);
     } else {
+        printf("XML data:\n");
         printf("%s\n", xml_str);
     }
 }
@@ -69,12 +70,13 @@ int main(int argc, char **argv){
     fds[0].fd = receiver2filter;
     fds[0].events = POLLIN;
     fds[1].fd = analytics2filter;
-    fds[1].fd = POLLIN;
+    fds[1].events = POLLIN;
 
     // Wait for incoming data to arrive at one of the sockets.
 	// If something arrives, call the correct function.
     while(poll(fds, 2, -1) >= 0) {
         if(fds[1].revents == POLLIN) {
+            printf("HELLO\n");
             xmlFreeDoc(schemaDocPtr);
             schemaDocPtr = receive_xml(analytics2filter);
         }
