@@ -52,21 +52,17 @@ end:
     return ret;
 }
 
-// Returns the default schema as an XML document
-xmlDocPtr default_schema() {
-    NPResult result = NP_FAIL;
-    xmlDocPtr schemaDocPtr = NULL;
-
-    schemaDocPtr = xmlReadFile(DEFAULT_SCHEMA_FILE, NULL, XML_PARSE_NONET);
-    if(!schemaDocPtr) {
-        result = NP_XML_SCHEMA_ERROR;
-        goto end;
+// Prints out the XML data.
+// This is just here for debugging purposes.
+void printxml(xmlDocPtr doc) {
+    xmlChar *xml_str = NULL;
+    int xml_str_len = 0;
+    xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1); 
+    if(xml_str == NULL || xml_str_len == 0) {
+        print_err(NP_XML_TO_STRING_ERROR, "printxml()");
+        exit(0);
+    } else {
+        printf("XML data:\n");
+        printf("%s\n", xml_str);
     }
-    result = NP_SUCCESS;
-
-end:
-    if(result != NP_SUCCESS) {
-        print_err(result, "default_schema()");
-    }
-    return schemaDocPtr;
 }

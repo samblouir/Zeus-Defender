@@ -7,7 +7,7 @@
 // Uses the given XML schema document
 char is_valid_packet(xmlDocPtr packet, xmlDocPtr schemaDocPtr);
 
-// Returns the default schema as an XML document
-xmlDocPtr default_schema();
+// Prints out XML data
+void printxml(xmlDocPtr doc);
 
 #endif

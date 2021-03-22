@@ -28,10 +28,14 @@ def analytics_to_filter_socket():
 def recv_xml(sock):
     try:
         # The first eight bytes represents the size of the data
-        size = int(sock.recv(8).decode('utf-8'))
+        size = sock.recv(8).decode('utf-8')
+
+        # Delete any \x00 characters in the size
+        while(size[-1] == '\x00'):
+            size = size[:-1]
 
         # Get the XML data itself
-        data = sock.recv(size).decode('utf-8') # Data is returned as a string
+        data = sock.recv(int(size)).decode('utf-8') # Data is returned as a string
         return data # TODO: Convert from string to XML
     except Exception as e:
         print(e)
@@ -43,7 +47,6 @@ def recv_xml(sock):
 # Can also be used to send XML schemas (because schemas are written in xml).
 def send_xml(data, sock):
     # TODO: Make this work even when data is not a string
-
     try:
         # Send the size of the data
         # Length must be exactly 8 bytes long!!!
@@ -66,10 +69,30 @@ def send_xml(data, sock):
         print(e)
         sys.exit(1)
 
-      
-# Example: Sending a single xsd file (given as an argument) to the filter
+# Example: Read a packet from the filter and send an XML schema to the filter.
+# The XML schema filename should be given as an argument
 if(__name__ == "__main__" and len(sys.argv) == 2):
     analytics2filter = analytics_to_filter_socket()
     with open(sys.argv[1], 'r') as f:
+        print(recv_xml(analytics2filter))
         schema_str = f.read()
         send_xml(schema_str, analytics2filter)
+    analytics2filter.close()
+      
+"""
+# Example: Sending three XML schemas, one that allows the first packet and
+# another that allows the middle packet.
+if(__name__ == "__main__"):
+    analytics2filter = analytics_to_filter_socket()
+    with open('schema_allow_first.xsd', 'r') as f:
+        schema_str = f.read()
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+    with open('schema_allow_last.xsd', 'r') as f:
+        schema_str = f.read()
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+    analytics2filter.close()
+"""

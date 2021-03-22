@@ -9,6 +9,7 @@
 #define ANALYTICS_TO_FILTER "/tmp/zeus/analytics2filter"
 
 xmlDocPtr receive_xml(int fd); // Reads XML data from the given file descriptor
+NPResult send_xml(xmlDocPtr doc, int fd); // Sends an XML document to a socket
 
 /* SERVER SOCKETS */
 int receiver_to_filter_socket(); // Returns UDS socket for obtaining data from receiver

@@ -9,79 +9,63 @@
 #include "comms.h"
 #include "xml.h"
 
-// Prints out the XML data.
-// This is just here for testing purposes.
-// You can delete this later.
-void printxml(xmlDocPtr doc) {
-    xmlChar *xml_str = NULL;
-    int xml_str_len = 0;
-    xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1);
-    if(xml_str == NULL || xml_str_len == 0) {
-        print_err(NP_XML_TO_STRING_ERROR, "printxml()");
-        exit(0);
-    } else {
-        printf("XML data:\n");
-        printf("%s\n", xml_str);
+// Reads a packet from the receiver, forwards it to the data
+// analytics component, waits for the data analytics component
+// to return a schema, applies the schema that the data analytics
+// component returns to the received packet, and forwards the
+// packet to the flag if it is valid.
+void process_packet(int receiver2filter, int analytics2filter) {
+    xmlDocPtr packet = NULL, schemaDocPtr = NULL;
+    struct pollfd analytics_poll = {0};
+
+    // Read the packet and send it to the data analytics
+    packet = receive_xml(receiver2filter);
+    printf("Sending packet to data analytics...\n");
+    if(send_xml(packet, analytics2filter) != NP_SUCCESS) {
+        exit(1);
     }
-}
 
-// Triggered when the receiver has sent a packet to the filter
-void packet_available(int receiver2filter, xmlDocPtr schemaDocPtr) {
-    xmlDocPtr packet = NULL;
+    // Wait for the data analytics to respond with a schema
+    analytics_poll.fd = analytics2filter;
+    analytics_poll.events = POLLIN;
+    do {
+        poll(&analytics_poll, 1, -1);
+    } while(!(analytics_poll.revents & POLLIN));
+    schemaDocPtr = receive_xml(analytics2filter);
+    printf("Hello\n");
 
-    // Read data from the receiver to obtain XML data about a single packet.
-	packet = receive_xml(receiver2filter);
-
-	// Check if the packet is valid
-	if(is_valid_packet(packet, schemaDocPtr)) {
-		// TODO: Forward the XML data to the flag
+    // Forward the packet to the flag if it's valid
+    if(is_valid_packet(packet, schemaDocPtr)) {
         printxml(packet);
-	} else {
-        printf("Invalid packet has been blocked.\n");
-	}
+        // TODO: Replace the above line with a call to send_xml(),
+        // which will forward the packet to the flag
+    }
 
-	// TODO: Regardless of whether the packet was allowed or blocked, 
-	// send it to the data analytics component. Do not use the schema socket
-	// for doing this! Make another UDS socket for communicating with the
-	// data analytics component (this will probably also have to be passed
-    // in as an input parameter for this function).
-
-	// Delete the packet
-	xmlFreeDoc(packet);
+    // Bye bye
+    xmlFreeDoc(packet);
+    xmlFreeDoc(schemaDocPtr);
 }
 
 int main(int argc, char **argv){
     int receiver2filter = 0, analytics2filter = 0;
-    struct pollfd fds[2] = {0};
-    xmlDocPtr schemaDocPtr = NULL;
+    struct pollfd receiver_poll = {0};
 
     // Checks whether the libxml2 version is compatible with the software
     // Due to some kind of witchcraft, a semicolon is not necessary here
     LIBXML_TEST_VERSION
 
-    // Initialize the XML schema
-    schemaDocPtr = default_schema();
-
     // UDS server sockets for communication
     receiver2filter = receiver_to_filter_socket();
     analytics2filter = analytics_to_filter_socket();
 
-    // Initialize the pollfd structure to listen for the UDS sockets
-    fds[0].fd = receiver2filter;
-    fds[0].events = POLLIN;
-    fds[1].fd = analytics2filter;
-    fds[1].events = POLLIN;
-
-    // Wait for incoming data to arrive at one of the sockets.
-	// If something arrives, call the correct function.
-    while(poll(fds, 2, -1) >= 0) {
-        if(fds[1].revents == POLLIN) {
-            printf("HELLO\n");
-            xmlFreeDoc(schemaDocPtr);
-            schemaDocPtr = receive_xml(analytics2filter);
-        }
-        if(fds[0].revents == POLLIN) {
-            packet_available(receiver2filter, schemaDocPtr);
+    // Wait until a packet arrives
+    receiver_poll.fd = receiver2filter;
+    receiver_poll.events = POLLIN;
+    while(poll(&receiver_poll, 1, -1) >= 0) {
+        if(!!(receiver_poll.revents & POLLIN)) {
+            process_packet(receiver2filter, analytics2filter);
         }
     }
+
+    return 0;
 }

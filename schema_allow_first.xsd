@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:element name="packet">
+<xs:complexType mixed="true">
+<xs:sequence>
+<xs:element name="packet_header">
+<xs:complexType>
+<xs:simpleContent>
+<xs:extension base="xs:string">
+<xs:attribute type="xs:byte" name="ver" use="optional"/>
+<xs:attribute type="xs:byte" name="hlen" use="optional"/>
+<xs:attribute type="xs:short" name="tot_len" use="optional"/>
+<xs:attribute type="idRestrictions" name="id" use="required"/>
+<xs:attribute type="xs:int" name="flags" use="optional"/>
+<xs:attribute type="xs:byte" name="frag_offset" use="optional"/>
+<xs:attribute type="xs:short" name="ttl" use="optional"/>
+<xs:attribute type="xs:byte" name="protocol" use="optional"/>
+<xs:attribute type="checksumRestrictions" name="header_checksum" use="required"/>
+<xs:attribute type="xs:string" name="source_addr" use="optional"/>
+<xs:attribute type="xs:string" name="destination_addr" use="optional"/>
+<xs:attribute type="xs:byte" name="option" use="optional"/>
+<xs:attribute type="xs:byte" name="codepoint" use="optional"/>
+</xs:extension>
+</xs:simpleContent>
+</xs:complexType>
+</xs:element>
+<xs:element name="packet_data">
+<xs:complexType>
+<xs:sequence>
+<xs:element name="segment">
+<xs:complexType>
+<xs:sequence>
+<xs:element name="segment_header">
+<xs:complexType>
+<xs:simpleContent>
+<xs:extension base="xs:string">
+<xs:attribute type="xs:int" name="src_port" use="optional"/>
+<xs:attribute type="xs:int" name="dst_port" use="optional"/>
+<xs:attribute type="xs:long" name="seq_num" use="optional"/>
+<xs:attribute type="xs:long" name="ack_num" use="optional"/>
+<xs:attribute type="xs:byte" name="hlen" use="optional"/>
+<xs:attribute type="xs:byte" name="reserved" use="optional"/>
+<xs:attribute type="xs:byte" name="urg" use="optional"/>
+<xs:attribute type="xs:byte" name="ack" use="optional"/>
+<xs:attribute type="xs:byte" name="psh" use="optional"/>
+<xs:attribute type="xs:byte" name="rst" use="optional"/>
+<xs:attribute type="xs:byte" name="syn" use="optional"/>
+<xs:attribute type="xs:byte" name="fin" use="optional"/>
+</xs:extension>
+</xs:simpleContent>
+</xs:complexType>
+</xs:element>
+<xs:element name="segment_data" minOccurs="0">
+<xs:complexType>
+<xs:simpleContent>
+<xs:extension base="xs:string">
+<xs:attribute type="xs:byte" name="answer_id" use="optional"/>
+<xs:attribute type="xs:byte" name="queries" use="optional"/>
+<xs:attribute type="xs:byte" name="answers" use="optional"/>
+<xs:attribute type="xs:byte" name="authorities" use="optional"/>
+<xs:attribute type="xs:byte" name="additional" use="optional"/>
+<xs:attribute type="xs:byte" name="query_id" use="optional"/>
+</xs:extension>
+</xs:simpleContent>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+<xs:attribute type="xs:string" name="protocol" use="optional"/>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+<xs:attribute type="xs:string" name="protocol" use="optional"/>
+<xs:attribute type="xs:string" name="datetime" use="optional"/>
+</xs:complexType>
+</xs:element>
+
+
+<xs:simpleType name="idRestrictions">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="0x2906" />
+    <xs:enumeration value="0x4daf" />
+  </xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="checksumRestrictions">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="0x9e72" />
+    <xs:enumeration value="0x9df0" />
+    <xs:enumeration value="0x3ee4" />
+  </xs:restriction>
+</xs:simpleType>
+</xs:schema>

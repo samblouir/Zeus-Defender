@@ -57,6 +57,43 @@ end:
     return doc;
 }
 
+// Sends an XML document to a socket
+NPResult send_xml(xmlDocPtr doc, int fd) {
+    NPResult result = NP_SUCCESS;
+    xmlChar *xml_str = NULL;
+    char xml_str_len_buf[8] = {0};
+    int xml_str_len = 0;
+
+    // Convert the XML document to a string
+    xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1);
+    if(xml_str == NULL || xml_str_len == 0) {
+        result = NP_XML_TO_STRING_ERROR;
+        goto end;
+    }
+
+    // Send the length of the string
+    snprintf(xml_str_len_buf, 8, "%lu", (size_t) xml_str_len);
+    if(send(fd, xml_str_len_buf, 8, 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
+        goto end;
+    }
+
+    // Send the string
+    if(send(fd, xml_str, xml_str_len, 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
+        goto end;
+    }
+
+end:
+    if(xml_str != NULL) {
+        xmlFree(xml_str);
+    }
+    if(result != NP_SUCCESS) {
+        print_err(result, "send_xml()");
+    }
+    return result;
+}
+
 // Creates a UDS listener for the receiver can connect to.
 // Waits for the receiver to connect and returns a file
 // descriptor for the UDS socket.
