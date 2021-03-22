@@ -32,7 +32,6 @@ void process_packet(int receiver2filter, int analytics2filter) {
         poll(&analytics_poll, 1, -1);
     } while(!(analytics_poll.revents & POLLIN));
     schemaDocPtr = receive_xml(analytics2filter);
-    printf("Hello\n");
 
     // Forward the packet to the flag if it's valid
     if(is_valid_packet(packet, schemaDocPtr)) {
