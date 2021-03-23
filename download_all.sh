@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Running this script should create a folder called ZD, and 
-# inside of it, download all of the branches, and make them.
+# inside of it, download all of the branches, and Make them.
 
 inner_folder="ZD"
 ## Downloads and makes all the branches of this repository!
