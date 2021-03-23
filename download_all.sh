@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Running this script should create a folder called ZD, and 
-# inside of it, download all of the branches, and Make them.
+# inside of it, download all of the branches, and make them.
 
 inner_folder="ZD"
 ## Downloads and makes all the branches of this repository!
@@ -49,8 +49,11 @@ done <$perma_path
 # Prepare the filter directory
 mkdir -p /tmp/zeus
 
+# Moves run_in_order.sh into our currect directory
+mv $inner_folder/python-branch/run_in_order.sh .
+
+
 ### Part 4 (Finished)
 echo "Ready! Now run run_in_order.sh!"
-
 
 
