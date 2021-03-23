@@ -45,15 +45,17 @@ while read line; do
 cd $line && make
 cd ..
 done <$perma_path
+cd ..
 
 # Prepare the filter directory
 mkdir -p /tmp/zeus
 
 # Moves run_in_order.sh into our currect directory
-mv $inner_folder/python-branch/run_in_order.sh .
+mv $PWD/$inner_folder/python-branch/run_in_order.sh $PWD/
+chmod +x run_in_order.sh
 
 
 ### Part 4 (Finished)
-echo "Ready! Now run run_in_order.sh!"
+echo "Ready! Now call ./run_in_order.sh!"
 
 
