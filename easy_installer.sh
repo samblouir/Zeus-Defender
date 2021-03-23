@@ -2,6 +2,8 @@
 
 # Running this script should create a folder called ZD, and 
 # inside of it, download all of the branches, and make them.
+# After all are made, it creates a ./run_in_order.sh file in the current working directory.
+# Calling ./run_in_order.sh will create three additional terminal windows and run the program.
 
 inner_folder="ZD"
 ## Downloads and makes all the branches of this repository!
