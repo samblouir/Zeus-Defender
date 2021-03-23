@@ -69,17 +69,6 @@ def send_xml(data, sock):
         print(e)
         sys.exit(1)
 
-# Example: Read a packet from the filter and send an XML schema to the filter.
-# The XML schema filename should be given as an argument
-if(__name__ == "__main__" and len(sys.argv) == 2):
-    analytics2filter = analytics_to_filter_socket()
-    with open(sys.argv[1], 'r') as f:
-        print(recv_xml(analytics2filter))
-        schema_str = f.read()
-        send_xml(schema_str, analytics2filter)
-    analytics2filter.close()
-      
-
 # Example: Sending three XML schemas, one that allows the first packet and
 # another that allows the middle packet.
 if(__name__ == "__main__" and len(sys.argv) == 2 and sys.argv[1] == "test"):
@@ -95,6 +84,20 @@ if(__name__ == "__main__" and len(sys.argv) == 2 and sys.argv[1] == "test"):
         print(recv_xml(analytics2filter))
         send_xml(schema_str, analytics2filter)
     analytics2filter.close()
+    exit(0)
+    
+    
+# Example: Read a packet from the filter and send an XML schema to the filter.
+# The XML schema filename should be given as an argument
+if(__name__ == "__main__" and len(sys.argv) == 2):
+    analytics2filter = analytics_to_filter_socket()
+    with open(sys.argv[1], 'r') as f:
+        print(recv_xml(analytics2filter))
+        schema_str = f.read()
+        send_xml(schema_str, analytics2filter)
+    analytics2filter.close()
+      
+
 
 """
 # Example: Sending three XML schemas, one that allows the first packet and
