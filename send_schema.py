@@ -79,6 +79,23 @@ if(__name__ == "__main__" and len(sys.argv) == 2):
         send_xml(schema_str, analytics2filter)
     analytics2filter.close()
       
+
+# Example: Sending three XML schemas, one that allows the first packet and
+# another that allows the middle packet.
+if(__name__ == "__main__" and len(sys.argv) == 2 and sys.argv[1] == "test"):
+    analytics2filter = analytics_to_filter_socket()
+    with open('schema_allow_first.xsd', 'r') as f:
+        schema_str = f.read()
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+    with open('schema_allow_last.xsd', 'r') as f:
+        schema_str = f.read()
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+        print(recv_xml(analytics2filter))
+        send_xml(schema_str, analytics2filter)
+    analytics2filter.close()
+
 """
 # Example: Sending three XML schemas, one that allows the first packet and
 # another that allows the middle packet.
