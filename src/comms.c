@@ -53,6 +53,7 @@ end:
     }
     if(result != NP_SUCCESS) {
         print_err(result, "receive_xml()");
+        printf("Failure in receive_xml()...\n");
     }
     return doc;
 }
@@ -90,6 +91,7 @@ end:
     }
     if(result != NP_SUCCESS) {
         print_err(result, "send_xml()");
+        printf("Error in send_xml()!\n");
     }
     return result;
 }
