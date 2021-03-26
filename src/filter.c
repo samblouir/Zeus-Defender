@@ -28,7 +28,7 @@ void process_packet(int receiver2filter, int analytics2filter) {
     packet = receive_xml(receiver2filter);
 
     // Skips over everything if we received a null packet
-    if (packet != NULL) {
+    if (NULL != packet) {
 
 
 //        // Retry empty packets
@@ -47,7 +47,7 @@ void process_packet(int receiver2filter, int analytics2filter) {
 //    fflush(stdout);
         result = send_xml(packet, analytics2filter);
 
-        while (result != NP_SUCCESS) {
+        while (NP_SUCCESS != result) {
             sleep(1);
             printf("Failed to send to Data Analytics. Retrying...");
             fflush(stdout);
@@ -79,7 +79,8 @@ void process_packet(int receiver2filter, int analytics2filter) {
             // which will forward the packet to the flag
         }
 
-        printf("\n\n  Finished in process_packet(%d, %d) (#%d)", receiver2filter, analytics2filter, packet_counter);
+        printf("\n\n packet #%d Finished in process_packet(%d, %d) ", packet_counter, receiver2filter,
+               analytics2filter);
         packet_counter++;
         fflush(stdout);
     }
