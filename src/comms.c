@@ -35,7 +35,7 @@ int create_server(char *ip, int port) {
         result = NP_SOCKET_CREATION_ERROR;
         goto end;
     }
-    printf("INFO: Created socket { fd = %d }\n", fd);
+    printf("INFO: Created server: socket { fd = %d }\n", fd);
 
     // Fill up the server socket information
     serv_addr.sin_family = AF_INET;
@@ -78,7 +78,7 @@ int create_uds_client(char *path)
         printf("ERROR: Couldn't create socket (%s)\n", strerror(errno));
         return -1;
     }
-    printf("INFO: Created socket with fd %d\n", fd);
+    printf("INFO: Created uds client socket { fd = %d }\n", fd);
 
     // Create the server socket information
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -93,7 +93,8 @@ int create_uds_client(char *path)
         return -1;
     }
     printf("INFO: Connected to address %s (%s)\n", serv_addr.sun_path, strerror(errno));
-
+goto end;
+end:
     return fd;
 
 }
@@ -120,6 +121,7 @@ NPResult recv_xml(int fd) {
             result = NP_SOCKET_RECV_MSG_ERROR;
             goto end;
         }
+        printf("%s", buf);
         int res = forward_to_filter(filter, buf);
         if(res < 0) {
             result = NP_FAIL;
