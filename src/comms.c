@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -12,110 +13,90 @@
 #include "error.h"
 #include "comms.h"
 
-// Reads a single XML file from the given file descriptor.
-// Returns the data into as an xmlDocPtr.
+// Reads a single XML file from the given file descriptor
+// Returns the data as an xmlDocPtr
 xmlDocPtr receive_xml(int fd) {
     NPResult result = NP_FAIL;
-    char *buf = NULL;
-    size_t len = 0;
+    char *xml = NULL;
+    int32_t xml_len = 0;
+    int tmp = 0, bytes_counter = 0;
     xmlDocPtr doc = NULL;
 
     // Get the size of the data
-    buf = my_malloc(8);
-    int temp = recv(fd, buf, 8, 0);
-    if (temp < 0) {
-        printf("\nNP_SOCKET_RECV_MSG_ERROR in receive_xml(), temp == %d...\n", temp);
+    tmp = recv(fd, &xml_len, sizeof(int32_t), 0);
+    if(tmp < 0) {
         result = NP_SOCKET_RECV_MSG_ERROR;
         goto end;
     }
-    sscanf(buf, "%lu", &len);
-    printf("filter: len (buf_len) == %lu\n", len); // Always prints 0?
-    free(buf);
-    buf = NULL;
+    xml_len = ntohl(xml_len);
 
     // Read the XML data itself
-    buf = my_malloc(len);
-
-    size_t total_received = 0;
-    size_t curr = 0;
-
-    while (total_received < len) {
-        curr = recv(fd, buf, len, 0);
-        total_received += curr;
-
-        if (-1 == curr)
-            break;
-
-        if (total_received > len) {
-            printf("total received > len...?, total_received/len == %zu / %zu\n", total_received, len);
+    xml = my_malloc(xml_len);
+    while(bytes_counter < xml_len) {
+        tmp = recv(fd, xml+bytes_counter, xml_len-bytes_counter, 0);
+        if(tmp < 0) {
             result = NP_SOCKET_RECV_MSG_ERROR;
             goto end;
         }
+        bytes_counter += tmp;
     }
 
-//    if (temp < 0) {
-//        printf("\nNP_SOCKET_RECV_MSG_ERROR in receive_xml(), temp == %d...\n", temp);
-//        result = NP_SOCKET_RECV_MSG_ERROR;
-//        goto end;
-//    }
-
     // Convert the string into an xmlDocPtr
-    doc = xmlReadMemory(buf, len, "packet.xml", NULL, 0);
-    if (NULL == doc) {
-        printf("\nNP_XML_DOC_CREATION_ERROR in receive_xml()...\n");
-        printf("\nlen == %zu...\n", len);
+    doc = xmlReadMemory(xml, xml_len, "packet.xml", NULL, 0);
+    if(NULL == doc) {
         result = NP_XML_DOC_CREATION_ERROR;
         goto end;
     }
 
     result = NP_SUCCESS;
 
-    end:
-    if (NULL != buf) {
-        free(buf);
-        buf = NULL;
+end:
+    if(xml != NULL) {
+        free(xml);
+        xml = NULL;
     }
-    if (NP_SUCCESS != result) {
+    if(NP_SUCCESS != result) {
         print_err(result, "receive_xml()");
-        printf("Failure in receive_xml()...\n");
     }
     return doc;
 }
 
 // Sends an XML document to a socket
 NPResult send_xml(xmlDocPtr doc, int fd) {
-    NPResult result = NP_SUCCESS;
-    xmlChar *xml_str = NULL;
-    char xml_str_len_buf[8] = {0};
-    int xml_str_len = 0;
+    NPResult result = NP_FAIL;
+    xmlChar *xml = NULL;
+    int32_t xml_len = 0;
 
     // Convert the XML document to a string
-    xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1);
-    if (xml_str == NULL || xml_str_len == 0) {
+    xmlDocDumpFormatMemoryEnc(doc, &xml, &xml_len, "UTF-8", 1);
+    if(xml == NULL || xml_len == 0) {
         result = NP_XML_TO_STRING_ERROR;
         goto end;
     }
 
-    // Send the length of the string
-    snprintf(xml_str_len_buf, 8, "%lu", (size_t) xml_str_len);
-    if (send(fd, xml_str_len_buf, 8, 0) < 0) {
+    // Send the length of the buffer
+    xml_len = htonl(xml_len);
+    if(send(fd, &xml_len, sizeof(int32_t), 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
+        goto end;
+    }
+    xml_len = ntohl(xml_len);
+
+    // Send the data
+    if(send(fd, xml, xml_len, 0) < 0) {
         result = NP_SOCKET_SEND_MSG_ERROR;
         goto end;
     }
 
-    // Send the string
-    if (send(fd, xml_str, xml_str_len, 0) < 0) {
-        result = NP_SOCKET_SEND_MSG_ERROR;
-        goto end;
-    }
+    result = NP_SUCCESS;
 
-    end:
-    if (xml_str != NULL) {
-        xmlFree(xml_str);
+end:
+    if(xml != NULL) {
+        xmlFree(xml);
+        xml = NULL;
     }
-    if (result != NP_SUCCESS) {
+    if(NP_SUCCESS != result) {
         print_err(result, "send_xml()");
-        printf("Error in send_xml()!\n");
     }
     return result;
 }
@@ -171,7 +152,7 @@ int receiver_to_filter_socket() {
     }
     result = NP_SUCCESS;
 
-    end:
+end:
     if (result != NP_SUCCESS) {
         print_err(result, "receiver_to_filter_socket()");
     } else {
@@ -231,7 +212,7 @@ int analytics_to_filter_socket() {
     }
     result = NP_SUCCESS;
 
-    end:
+end:
     if (result != NP_SUCCESS) {
         print_err(result, "analytics_to_filter_socket()");
     } else {

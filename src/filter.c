@@ -9,18 +9,15 @@
 #include "comms.h"
 #include "xml.h"
 
-static int packet_counter = 0;
-
 // Reads a packet from the receiver, forwards it to the data
 // analytics component, waits for the data analytics component
 // to return a schema, applies the schema that the data analytics
 // component returns to the received packet, and forwards the
 // packet to the flag if it is valid.
 void process_packet(int receiver2filter, int analytics2filter) {
-//    printf("\n\nEntering process_packet(%d, %d)", receiver2filter, analytics2filter);
-//    fflush(stdout);
-
     int result = 0;
+    static int packet_counter = 0;
+    static xmlDocPtr prevDocPtr = NULL;
     xmlDocPtr packet = NULL, schemaDocPtr = NULL;
     struct pollfd analytics_poll = {0};
 
@@ -29,22 +26,6 @@ void process_packet(int receiver2filter, int analytics2filter) {
 
     // Skips over everything if we received a null packet
     if (NULL != packet) {
-
-
-//        // Retry empty packets
-//        while (packet == NULL) {
-//            printf("Failed to receive from the receiver. Retrying...\n");
-//            fflush(stdout);
-//            sleep(1);
-//            packet = receive_xml(receiver2filter);
-//        }
-
-
-
-//    printf("\n\n");
-//    printf("*************************\n");
-//    printf("Sending packet to data analytics...\n\n");
-//    fflush(stdout);
         result = send_xml(packet, analytics2filter);
 
         while (NP_SUCCESS != result) {
@@ -53,9 +34,6 @@ void process_packet(int receiver2filter, int analytics2filter) {
             fflush(stdout);
             result = send_xml(packet, analytics2filter);
         }
-//    printf("\nSuccessfully sent packet!\n");
-//    printf("*************************\n");
-//    fflush(stdout);
 
         // Wait for the data analytics to respond with a schema
         analytics_poll.fd = analytics2filter;
@@ -64,30 +42,32 @@ void process_packet(int receiver2filter, int analytics2filter) {
             poll(&analytics_poll, 1, -1);
         } while (!(analytics_poll.revents & POLLIN));
         schemaDocPtr = receive_xml(analytics2filter);
-
-        while (schemaDocPtr == NULL) {
-            printf("Failed to receive from Data Analytics. Retrying...");
-            fflush(stdout);
-            sleep(1);
-            schemaDocPtr = receive_xml(analytics2filter);
+        if(NULL == schemaDocPtr) {
+            // If no document was received, then use the previous schemaDocPtr
+            schemaDocPtr = prevDocPtr;
+        } else {
+            // Else, set prevDocPtr to the current XML document so that we can
+            // use it next time this function is called
+            prevDocPtr = schemaDocPtr;
         }
+
+        printf("Packet #%d:\n", packet_counter);
+        printxml(packet);
 
         // Forward the packet to the flag if it's valid
         if (is_valid_packet(packet, schemaDocPtr)) {
-            printxml(packet);
-            // TODO: Replace the above line with a call to send_xml(),
-            // which will forward the packet to the flag
+            printf("Packet #%d is deemed to be valid.\n\n", packet_counter);
+            // TODO: Send packet to flag
+        } else {
+            printf("Packet #%d is deemed to be invalid.\n\n", packet_counter);
         }
 
-        printf("\n\n packet #%d Finished in process_packet(%d, %d) ", packet_counter, receiver2filter,
-               analytics2filter);
         packet_counter++;
         fflush(stdout);
     }
     // Bye bye
     xmlFreeDoc(packet);
     xmlFreeDoc(schemaDocPtr);
-
 }
 
 int main(int argc, char **argv) {
@@ -102,7 +82,6 @@ int main(int argc, char **argv) {
     receiver2filter = receiver_to_filter_socket();
     analytics2filter = analytics_to_filter_socket();
 
-
     // Wait until a packet arrives
     receiver_poll.fd = receiver2filter;
     receiver_poll.events = POLLIN;
@@ -110,8 +89,6 @@ int main(int argc, char **argv) {
         if (receiver_poll.revents & POLLIN) {
             process_packet(receiver2filter, analytics2filter);
         }
-        printf("\n\tStep BBB\n");
-        fflush(stdout);
     }
 
     printf("\n\nAll done!\n");

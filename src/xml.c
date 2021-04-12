@@ -62,7 +62,6 @@ void printxml(xmlDocPtr doc) {
         print_err(NP_XML_TO_STRING_ERROR, "printxml()");
         exit(0);
     } else {
-        printf("XML data:\n");
         printf("%s\n", xml_str);
     }
 }
