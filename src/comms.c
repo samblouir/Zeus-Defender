@@ -57,27 +57,26 @@ int create_server(char *ip, int port) {
     }
     printf("INFO: Bound { AF_INET, %d, %d }\n", serv_addr.sin_addr.s_addr, serv_addr.sin_port);
 
-    end:
+end:
     if (result != NP_SUCCESS) {
-        printf("ERROR: ");
         print_err(result, "create_server()");
-        printf(" (%s)\n", strerror(errno));
-        // printf("ERROR: %s\n", strerror(errno));
     }
     return fd;
 }
 
+// Returns a file descriptor for the UDS client
 int create_uds_client(char *path) {
-    int fd = 0; // File descriptor to return
-    struct sockaddr_un serv_addr = {0}; // Contains information about socket
+    NPResult result = NP_FAIL;
+    int fd = 0;
+    struct sockaddr_un serv_addr = {0};
 
     // Create a UDS socket
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (fd < 0) {
-        printf("ERROR: Couldn't create socket (%s)\n", strerror(errno));
-        return -1;
+    if(fd < 0) {
+        result = NP_SOCKET_CREATION_ERROR;
+        goto end;
     }
-    printf("INFO: Created uds client socket { fd = %d }\n", fd);
+    printf("INFO: Created UDS client socket { fd = %d }\n", fd);
 
     // Create the server socket information
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -85,105 +84,114 @@ int create_uds_client(char *path) {
     strncpy(serv_addr.sun_path, path, sizeof(serv_addr.sun_path));
     printf("INFO: Created sockaddr with path %s\n", serv_addr.sun_path);
 
-
     // Connect to the server
-    if (connect(fd, (const struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        printf("ERROR: Couldn't connect socket to address %s (%s)\n", serv_addr.sun_path, strerror(errno));
-        return -1;
+    if(connect(fd, (const struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        printf("ERROR: Couldn't connect to address %s (%s)\n",
+                serv_addr.sun_path, strerror(errno));
+        result = NP_SOCKET_CONNECTION_ERROR;
     }
-    printf("INFO: Connected to address %s (%s)\n", serv_addr.sun_path, strerror(errno));
-goto end;
-end:
-    return fd;
 
+    printf("INFO: Connected to address %s (%s)\n", serv_addr.sun_path, strerror(errno));
+    result = NP_SUCCESS;
+
+end:
+    if(result != NP_SUCCESS) {
+        print_err(result, "create_uds_client()");
+        printf("ERROR: Retrying UDS connection with filter.\n");
+        fd = create_uds_client(path);
+    }
+    return fd;
 }
 
-// Reads XML data from the pitcher in 2048-byte increments
+// Reads XML data from the pitcher and forwards it to the filter
 NPResult recv_xml(int fd) {
-    NPResult result = NP_SUCCESS;
-    char *buf = NULL;
-    char buf_len_buf[8] = {0};
-    size_t buf_len = 0;
-    int running = 1;
-    int res = 0;
-    int filter = create_uds_client("/tmp/zeus/receiver2filter");
+    NPResult result = NP_FAIL;
+    char *xml = NULL;
+    int32_t xml_len = 0;
+    int filter = 0, bytes_counter = 0, running = 1, tmp = 0;
+    long packet_counter = 0;
 
-    printf("INFO: filter: %d\n", filter);
-    while (filter < 0) {
-        printf("Failed in create_uds_client(\"...\"). Retrying...");
-        sleep(1);
-        filter = create_uds_client("/tmp/zeus/receiver2filter");
-        // result = NP_FAIL;
-        // goto end;
+    // Initialize the UDS client that connects to the filter
+    filter = create_uds_client("/tmp/zeus/receiver2filter");
+    if(filter < 0) {
+        result = NP_SOCKET_CREATION_ERROR;
+        goto end;
     }
 
-    int packet_counter = 0;
     while (running) {
-        // Obtain the length of the XML data
-        memset(buf_len_buf, 0, 8);
-        if (recv(fd, buf_len_buf, 8, 0) < 0) {
+        // Obtain the length of the data
+        tmp = recv(fd, &xml_len, sizeof(int32_t), 0);
+        if(tmp < 0) {
             result = NP_SOCKET_RECV_MSG_ERROR;
             goto end;
         }
-<<<<<<< HEAD
-        printf("%s", buf);
-        int res = forward_to_filter(filter, buf);
-        if(res < 0) {
-=======
-        sscanf(buf_len_buf, "%lu", &buf_len);
-        printf("receiver: packet #%d, buf_len == %lu\n", packet_counter++, buf_len);
+        xml_len = ntohl(xml_len);
+        printf("INFO: Reading %d bytes from the pitcher...\n", xml_len);
 
-        // Obtain the XML data
-        buf = my_malloc(buf_len);
-        if (recv(fd, buf, buf_len, 0) < 0) {
-            result = NP_SOCKET_RECV_MSG_ERROR;
-            goto end;
+        // Obtain the rest of the XML data
+        // This is placed in a loop to ensure that every byte is read
+        bytes_counter = 0;
+        xml = my_malloc(xml_len);
+        while(bytes_counter < xml_len) {
+            tmp = recv(fd, xml+bytes_counter, xml_len-bytes_counter, 0);
+            if(tmp < 0) {
+                result = NP_SOCKET_RECV_MSG_ERROR;
+                goto end;
+            }
+            bytes_counter += tmp;
         }
-
-        // Forward the XML data
-        res = forward_to_filter(filter, buf, buf_len, buf_len_buf);
-        free(buf);
-        buf = NULL;
-        if (res < 0) {
->>>>>>> 7a309d02faa4f35508fd940bcd04db6f1a129978
+        
+        // Forward the data to the filter
+        printf("INFO: Received packet #%ld (%d bytes):\n%s\n", packet_counter, xml_len, xml);
+        if(forward_to_filter(filter, xml, xml_len) != NP_SUCCESS) {
             result = NP_FAIL;
             goto end;
         }
+        free(xml);
+        xml = NULL;
+        packet_counter++;
     }
 
-    end:
-    if (buf != NULL) {
-        free(buf);
-        buf = NULL;
+    result = NP_SUCCESS;
+
+end:
+    if(xml != NULL) {
+        free(xml);
+        xml = NULL;
     }
-    if (result != NP_SUCCESS) {
+    if(result != NP_SUCCESS) {
         print_err(result, "recv_xml()");
     }
     return result;
 }
 
-NPResult forward_to_filter(int filter, const char *data, size_t len, const char *data_len_buf) {
-    NPResult result = NP_SUCCESS;
+// Forward the data to the filter
+NPResult forward_to_filter(int filter, char *xml, int32_t xml_len) {
+    NPResult result = NP_FAIL;
 
-    if (data == NULL) {
-        result = NP_FAIL;
+    if(xml == NULL || xml_len == 0) {
+        result = NP_SUCCESS;
         goto end;
     }
 
-    // Send the length of the data
-    if (send(filter, data_len_buf, 8, 0) < 0) {
-        result = NP_FAIL;
+    // Send the length of the buffer
+    xml_len = htonl(xml_len);
+    if(send(filter, &xml_len, sizeof(int32_t), 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
+        goto end;
+    }
+    xml_len = ntohl(xml_len);
+
+    // Send the data
+    if(send(filter, xml, xml_len, 0) < 0) {
+        result = NP_SOCKET_SEND_MSG_ERROR;
         goto end;
     }
 
-    // Send the data itself
-    if (send(filter, data, len, 0) < 0) {
-        result = NP_FAIL;
-        goto end;
-    }
+    result = NP_SUCCESS;
 
-    end:
-    if (result != NP_SUCCESS) {
+end:
+    if(result != NP_SUCCESS) {
         print_err(result, "forward_to_filter()");
     }
     return result;
