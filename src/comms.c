@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "error.h"
 #include "comms.h"
+#include "heap.h"
 
 // Returns a file descriptor for a UDP socket that sends data to the receiver.
 // Requires an IP address and port number as input parameters.
@@ -46,8 +47,8 @@ end:
 NPResult send_xml(xmlDocPtr doc, int fd) {
     NPResult result = NP_SUCCESS;
     xmlChar *xml_str = NULL;
-    char xml_str_len_buf[8] = {0};
-    int xml_str_len = 0;
+    int32_t xml_str_len = 0;
+    char *buf = NULL;
 
     // Convert the XML document to a string
     xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1);
@@ -56,22 +57,28 @@ NPResult send_xml(xmlDocPtr doc, int fd) {
         goto end;
     }
 
-    // Send the length of the string
-    snprintf(xml_str_len_buf, 8, "%lu", (size_t) xml_str_len);
-    if(send(fd, xml_str_len_buf, 8, 0) < 0) {
+    // Send the length of the buffer
+    xml_str_len = htonl(xml_str_len);
+    if(send(fd, &xml_str_len, sizeof(int32_t), 0) < 0) {
         result = NP_SOCKET_SEND_MSG_ERROR;
         goto end;
     }
+    xml_str_len = ntohl(xml_str_len);
 
-    // Send the string
+    // Send the buffer
     if(send(fd, xml_str, xml_str_len, 0) < 0) {
         result = NP_SOCKET_SEND_MSG_ERROR;
         goto end;
     }
 
 end:
+    if(buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
     if(xml_str != NULL) {
         xmlFree(xml_str);
+        xml_str = NULL;
     }
     if(result != NP_SUCCESS) {
         print_err(result, "send_xml()");

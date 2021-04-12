@@ -6,6 +6,21 @@
 #include "comms.h"
 #include "error.h"
 
+// Prints out the XML data.
+// This is just here for debugging purposes.
+void printxml(xmlDocPtr doc) {
+    xmlChar *xml_str = NULL;
+    int xml_str_len = 0;
+    xmlDocDumpFormatMemoryEnc(doc, &xml_str, &xml_str_len, "UTF-8", 1); 
+    if(xml_str == NULL || xml_str_len == 0) {
+        print_err(NP_XML_TO_STRING_ERROR, "printxml()");
+        exit(0);
+    } else {
+        printf("XML data:\n");
+        printf("%s\n", xml_str);
+    }
+}
+
 // Takes a node (which represents a single packet) as a parameter.
 // Returns a new XML document that only contains that packet object.
 static xmlDocPtr new_packet_xml_doc(xmlNode *packet) {
@@ -38,6 +53,7 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
     NPResult result = NP_SUCCESS;
     xmlNode *cur_node = NULL;
     xmlDocPtr doc = NULL;
+    int counter = 0;
 
     // Loop through each node
     for (cur_node = root_node->children; cur_node; cur_node = cur_node->next) {
@@ -52,6 +68,10 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
                 goto end;
             }
 
+            // Print a message
+            printf("Sending packet #%d:\n", counter);
+            printxml(doc);
+
             // Send the XML object to the receiver.
             if(send_xml(doc, fd) != NP_SUCCESS) {
                 result = NP_FAIL;
@@ -61,6 +81,7 @@ NPResult parse_packets(xmlNode *root_node, int fd) {
             // Free the document
             xmlFreeDoc(doc);
             doc = NULL;
+            counter++;
         }
     }
 
