@@ -15,6 +15,7 @@
 #define SOCKET_BIND_ERROR_STR "Socket bind error.\n"
 #define SOCKET_IP_INVALID_ERROR_STR "Invalid IP address for server.\n"
 #define SOCKET_CONNECTION_ERROR_STR "Socket connection error.\n"
+#define SOCKET_LISTENING_ERROR_STR "Could not mark the TCP socket for listening.\n"
 #define SOCKET_SEND_MSG_ERROR_STR "Error while sending message to server.\n"
 #define SOCKET_RECV_MSG_ERROR_STR "Error while receiving message from client.\n"
 #define UNKNOWN_ERROR_STR "Unknown error code - %d.\n"
@@ -36,6 +37,7 @@ typedef enum  NPResult
     NP_SOCKET_BIND_ERROR,
     NP_SOCKET_IP_INVALID_ERROR,
     NP_SOCKET_CONNECTION_ERROR,
+    NP_SOCKET_LISTENING_ERROR,
     NP_SOCKET_SEND_MSG_ERROR,
     NP_SOCKET_RECV_MSG_ERROR
 } NPResult;

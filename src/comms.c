@@ -29,8 +29,8 @@ int create_server(char *ip, int port) {
     struct sockaddr_in client_addr = {0};
     int fd = 0;
 
-    // Create a UDP socket
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    // Create a TCP socket
+    fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         result = NP_SOCKET_CREATION_ERROR;
         goto end;
@@ -56,6 +56,12 @@ int create_server(char *ip, int port) {
         goto end;
     }
     printf("INFO: Bound { AF_INET, %d, %d }\n", serv_addr.sin_addr.s_addr, serv_addr.sin_port);
+
+    // Set the socket as a listener
+    if(listen(fd, 5) < 0) {
+        result = NP_SOCKET_LISTENING_ERROR;
+        goto end;
+    }
 
 end:
     if (result != NP_SUCCESS) {
@@ -103,22 +109,17 @@ end:
     return fd;
 }
 
-// Reads XML data from the pitcher and forwards it to the filter
-NPResult recv_xml(int fd) {
+// Reads XML data from a client socket and forwards it to the filter
+NPResult recv_xml(int fd, int filter) {
     NPResult result = NP_FAIL;
     char *xml = NULL;
+    char c = 0;
     int32_t xml_len = 0;
-    int filter = 0, bytes_counter = 0, running = 1, tmp = 0;
+    int bytes_counter = 0, tmp = 0;
     long packet_counter = 0;
 
-    // Initialize the UDS client that connects to the filter
-    filter = create_uds_client("/tmp/zeus/receiver2filter");
-    if(filter < 0) {
-        result = NP_SOCKET_CREATION_ERROR;
-        goto end;
-    }
-
-    while (running) {
+    // While there is data to read from the socket, continue reading it
+    while (recv(fd, &c, 1, MSG_PEEK) > 0) {
         // Obtain the length of the data
         tmp = recv(fd, &xml_len, sizeof(int32_t), 0);
         if(tmp < 0) {
@@ -143,15 +144,16 @@ NPResult recv_xml(int fd) {
         
         // Forward the data to the filter
         printf("INFO: Received packet #%ld (%d bytes):\n%s\n", packet_counter, xml_len, xml);
-        if(forward_to_filter(filter, xml, xml_len) != NP_SUCCESS) {
-            result = NP_FAIL;
-            goto end;
-        }
+        forward_to_filter(filter, xml, xml_len);
+
+        // Free stuff and go to next iteration
         free(xml);
         xml = NULL;
         packet_counter++;
     }
 
+    // Close the socket
+    close(fd);
     result = NP_SUCCESS;
 
 end:
