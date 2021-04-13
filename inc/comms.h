@@ -3,7 +3,7 @@
 
 #include "error.h"
 
-// Returns file descriptor for a UDP socket
+// Returns file descriptor for a TCP socket
 int create_socket(char *ip, int port);
 
 // Sends XML data to the given socket

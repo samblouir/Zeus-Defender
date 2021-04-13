@@ -11,14 +11,14 @@
 #include "comms.h"
 #include "heap.h"
 
-// Returns a file descriptor for a UDP socket that sends data to the receiver.
+// Returns a file descriptor for a TCP socket that sends data to the receiver.
 // Requires an IP address and port number as input parameters.
 int create_socket(char *ip, int port) {
     int fd = 0; // File descriptor to return
     struct sockaddr_in serv_addr = {0}; // Contains information about socket
 
     // Create a UDP socket
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    fd = socket(AF_INET, SOCK_STREAM, 0);
     if(fd < 0) {
         print_err(NP_SOCKET_CREATION_ERROR, "send_xml()");
         goto end;
