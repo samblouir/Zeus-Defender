@@ -18,6 +18,7 @@
 #define SOCKET_CONNECTION_ERROR_STR "Socket connection error.\n"
 #define SOCKET_SEND_MSG_ERROR_STR "Error while sending message to server.\n"
 #define SOCKET_RECV_MSG_ERROR_STR "Error while receiving message from client.\n"
+#define FILE_OPEN_ERROR_STR "Error while opening file.\n"
 #define UNKNOWN_ERROR_STR "Unknown error code - %d.\n"
 
 // Types of errors
@@ -40,6 +41,7 @@ typedef enum  NPResult
     NP_SOCKET_CONNECTION_ERROR,
     NP_SOCKET_SEND_MSG_ERROR,
     NP_SOCKET_RECV_MSG_ERROR,
+    NP_FILE_OPEN_ERROR
 } NPResult;
 
 // Checks if an error occurred and prints it out.

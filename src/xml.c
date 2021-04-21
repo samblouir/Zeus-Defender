@@ -65,3 +65,38 @@ void printxml(xmlDocPtr doc) {
         printf("%s\n", xml_str);
     }
 }
+
+// Sends a given XML packet to the flag
+NPResult send_to_flag(xmlDocPtr packet, int packet_counter) {
+    NPResult result = NP_FAIL;
+    FILE *flag = NULL;
+    xmlChar *xml_str = NULL;
+    int xml_str_len = 0;
+    char filename[100] = {0};
+
+    // Create a new file
+    snprintf(filename, 100, "/tmp/zeus/flag/packet%d.xml", packet_counter);
+    flag = fopen(filename, "w");
+    if(flag == NULL) {
+        result = NP_FILE_OPEN_ERROR;
+        goto end;
+    }
+
+    // Convert the XML document into a string
+    xmlDocDumpFormatMemoryEnc(packet, &xml_str, &xml_str_len, "UTF-8", 1);
+    if(xml_str == NULL || xml_str_len == 0) {
+        result = NP_XML_TO_STRING_ERROR;
+        goto end;
+    }
+
+    // Save the data to the file and close it
+    fprintf(flag, "%s", xml_str);
+    fclose(flag);
+    result = NP_SUCCESS;
+
+end:
+    if(result != NP_SUCCESS) {
+        print_err(result, "send_to_flag()");
+    }
+    return result;
+}

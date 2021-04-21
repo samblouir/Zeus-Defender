@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/poll.h>
+#include <sys/stat.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlschemas.h>
@@ -57,7 +58,7 @@ void process_packet(int receiver2filter, int analytics2filter) {
         // Forward the packet to the flag if it's valid
         if (is_valid_packet(packet, schemaDocPtr)) {
             printf("Packet #%d is deemed to be valid.\n\n", packet_counter);
-            // TODO: Send packet to flag
+            send_to_flag(packet, packet_counter);
         } else {
             printf("Packet #%d is deemed to be invalid.\n\n", packet_counter);
         }
@@ -77,6 +78,10 @@ int main(int argc, char **argv) {
     // Checks whether the libxml2 version is compatible with the software
     // Due to some kind of witchcraft, a semicolon is not necessary here
     LIBXML_TEST_VERSION
+
+    // Create necessary directories
+    mkdir("/tmp/zeus/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("/tmp/zeus/flag/", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
     // UDS server sockets for communication
     receiver2filter = receiver_to_filter_socket();

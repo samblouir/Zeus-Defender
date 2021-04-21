@@ -38,6 +38,8 @@ void print_err(NPResult result, const char *func) {
         printf(SOCKET_SEND_MSG_ERROR_STR);
     } else if(result == NP_SOCKET_RECV_MSG_ERROR) {
         printf(SOCKET_RECV_MSG_ERROR_STR);
+    } else if(result == NP_FILE_OPEN_ERROR) {
+        printf(FILE_OPEN_ERROR_STR);
     } else {
         printf(UNKNOWN_ERROR_STR, result);
     }
